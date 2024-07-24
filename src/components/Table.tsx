@@ -1,49 +1,50 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Pokemons } from "../types/PokemonTypes";
+import { PokemonDetail } from "./PokemonDetail";
+import { TableRow } from "./TableRow";
+import { PokemonContext } from "../PokemonContext";
 
-type PokemomTableProps = {
-  pokemons: Pokemons[];
-  page: number;
-};
-
-export const PokemomTable = ({ pokemons, page }: PokemomTableProps) => {
+export const PokemomTable = () => {
   const [selectedItem, setSelectedItem] = useState<Pokemons | null>(null);
+
+  const { state, dispatch } = useContext(PokemonContext);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/pokemon.json");
+        let data: Pokemons[] = await response.json();
+
+        if (state.filter !== "") {
+          data = data.filter((item) =>
+            item.name.english.toLowerCase().includes(state.filter.toLowerCase())
+          );
+        }
+        dispatch({ type: "setPokemon", payload: data });
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          console.log(e.message);
+        }
+      }
+    };
+    fetchData();
+  }, [state.filter]);
 
   const selectItem = (
     event: React.MouseEvent<HTMLButtonElement>,
     id: number
   ) => {
-    const selectedItem = pokemons.filter((pokemon) => {
-      return pokemon.id === id;
+    const selectedItem = state.pokemon.filter((poke) => {
+      return poke.id === id;
     });
-
     if (selectedItem.length > 0) {
-      setSelectedItem(selectedItem[0]);
+      dispatch({ type: "setSelectedPokemon", payload: selectedItem[0] });
     }
   };
 
   return (
     <div>
-      {selectedItem && (
-        <ul>
-          <button onClick={() => setSelectedItem(null)}>clear</button>
-          <li>Name: {selectedItem.name.english}</li>
-          <li>Type: {selectedItem.type.join(", ")}</li>
-          <li>Base stat.</li>
-          <ul
-            style={{
-              fontWeight: 500,
-            }}
-          >
-            <li>Attack : {selectedItem.base.Attack} pts</li>
-            <li>Defence : {selectedItem.base.Defense} pts</li>
-            <li>HP : {selectedItem.base.HP} pts</li>
-            <li>Attack Speed : {selectedItem.base["Sp. Attack"]} pts</li>
-            <li>Defence Speed : {selectedItem.base["Sp. Defense"]} pts</li>
-            <li>Speed : {selectedItem.base.Speed} pts</li>
-          </ul>
-        </ul>
-      )}
+      <PokemonDetail />
 
       <table width="100%">
         <thead>
@@ -53,22 +54,11 @@ export const PokemomTable = ({ pokemons, page }: PokemomTableProps) => {
             <th>Types</th>
           </tr>
         </thead>
-        <tbody>
-          {pokemons
-            .slice((page - 1) * 10, (page - 1) * 10 + 10)
-            .map((pokemon) => {
-              return (
-                <tr key={pokemon.id}>
-                  <td>{pokemon.id}</td>
-                  <td>{pokemon.name.english}</td>
-                  <td>{pokemon.type.join(" - ")}</td>
-                  <td>
-                    <button onClick={(e) => selectItem(e, pokemon.id)}>
-                      select!
-                    </button>
-                  </td>
-                </tr>
-              );
+        <tbody className="">
+          {state.pokemon
+            .slice((state.page - 1) * 10, (state.page - 1) * 10 + 10)
+            .map((poke) => {
+              return <TableRow key={poke.id} pokemon={poke} />;
             })}
         </tbody>
       </table>

@@ -1,12 +1,14 @@
-type InputProps = {
-  value?: string;
-  handleChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-};
+import { useContext } from "react";
+import { PokemonContext } from "../PokemonContext";
 
-export const Input = (props: InputProps) => {
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("oke");
+type InputProps = {} & React.ComponentProps<"input">;
+
+export const Input = ({ ...rest }: InputProps) => {
+  const { state, dispatch } = useContext(PokemonContext);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: "setFilter", payload: e.target.value });
   };
 
-  return <input type="text" onChange={handleInputChange} value={props.value} />;
+  return <input {...rest} onChange={handleSearch} />;
 };

@@ -1,13 +1,17 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useContext, useState } from "react";
+import { PokemonContext } from "../PokemonContext";
 
-type SelectProps = {
-  pageOptions: number;
-  handleChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-};
+type SelectProps = {} & React.ComponentProps<"select">;
 
-export const Select = ({ pageOptions, handleChange }: SelectProps) => {
+export const Select = ({ ...rest }: SelectProps) => {
+  const { state, dispatch } = useContext(PokemonContext);
+  const pageOptions: number = Math.ceil(state.pokemon.length / 10);
+
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    dispatch({ type: "setPage", payload: parseInt(event.target.value) });
+  };
+
   let inputOptions: JSX.Element[] = [];
-
   for (let i = 1; i <= pageOptions; i++) {
     inputOptions.push(
       <option value={i} key={i}>
@@ -16,5 +20,9 @@ export const Select = ({ pageOptions, handleChange }: SelectProps) => {
     );
   }
 
-  return <select onChange={handleChange}>{inputOptions}</select>;
+  return (
+    <select {...rest} onChange={handleChange}>
+      {inputOptions}
+    </select>
+  );
 };
